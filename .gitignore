@@ -1,1 +1,5 @@
 .idea
+*txt
+notepad.sqlite
+.DS_Store
+.bundle
