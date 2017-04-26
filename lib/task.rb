@@ -13,7 +13,8 @@ class Task < Post
   end
 
   def to_db_hash
-    return super.merge(
+
+    super.merge(
                     {
                        'text' => @text,
                        'due_date' => @due_date.to_s
@@ -22,15 +23,20 @@ class Task < Post
   end
 
   def read_from_console
-    puts "Что надо сдеать?"
+    puts "Что надо сделать?"
     @text = STDIN.gets.chomp
 
     puts "К какому числу выполнить задачу? ДД.ММ.ГГГГ"
     input = STDIN.gets.chomp
 
-    @due_date = Date.parse(input)
+    #ЗДЕСЬ РАЙЗИМ ЭРРОР ПРО НЕ ТОТ ФОРМАТ ВРЕМЕНИ
+    begin
+      @due_date = Date.parse(input)
+    rescue ArgumentError => error
+      puts "Ошибка ввода данных. " + error.message
+      exit
+    end
 
-    #ЗДЕСЬ МОЖНО УЖЕ РАЙЗИТЬ ЭРРОР ПРО НЕ ТОТ ФОРМАТ ВРЕМЕНИ
   end
 
   def to_strings

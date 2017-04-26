@@ -1,7 +1,6 @@
 require 'sqlite3'
 
 class Post
-
   SQLITE_DB_FILE = 'notepad.sqlite'
 
   def self.post_types
@@ -29,21 +28,25 @@ class Post
     db.results_as_hash = true
     post_hash = to_db_hash
 
-    # INSERT INTO posts (type, created_at, text) VALUES (?, ?, ?), ["Memo", "2017-04-21", "eeebe"]
-    db.execute("INSERT INTO posts (#{post_hash.keys.join(', ')}) VALUES (#{('?,' * post_hash.size).chomp(',')})",
-    post_hash.values)
-
+    begin
+      # INSERT INTO posts (type, created_at, text) VALUES (?, ?, ?), ["Memo", "2017-04-21", "eeebe"]
+      db.execute("INSERT INTO posts (#{post_hash.keys.join(', ')}) VALUES (#{('?,' * post_hash.size).chomp(',')})",
+      post_hash.values)
+    rescue SQLite3::SQLException => error
+      puts "Запись не сохранена. Ошибка обращения к базе данных. Ошибка: " + error.message
+      exit!
+    end
 
     insert_row_id = db.last_insert_row_id
-
     db.close
+
     insert_row_id
   end
 
   def self.find_all(limit, type)
-
     #вернуть таблицу записей
     db = SQLite3::Database.open(SQLITE_DB_FILE)
+
     db.results_as_hash = false
     query = "SELECT rowid, * FROM posts "
     #тут именованный плейсхолдер :type
@@ -51,7 +54,12 @@ class Post
     query += "ORDER by rowid DESC "
     query += "LIMIT :limit " unless limit.nil?
 
-    statement = db.prepare(query)
+    begin
+      statement = db.prepare(query)
+    rescue SQLite3::SQLException => error
+      puts "Ошибка обращения к базе данных. Ошибка: " + error.message
+      exit!
+    end
 
     statement.bind_param('type', type) unless type.nil?
     statement.bind_param('limit', limit) unless limit.nil?
@@ -70,7 +78,14 @@ class Post
     # конкретная запись
     if !id.nil?
       db.results_as_hash = true
-      result = db.execute("SELECT * FROM posts WHERE rowid = ?", id)
+
+      begin
+        result = db.execute("SELECT * FROM posts WHERE rowid = ?", id)
+      rescue SQLite3::SQLException => error
+        puts "Ошибка обращения к базе данных. Ошибка: " + error.message
+        exit!
+      end
+
       result = result[0] if result.is_a? Array
       db.close
 
@@ -80,7 +95,7 @@ class Post
       else
         post = post_create(result['type'])
         post.load_data(result)
-        return post
+        post
       end
     end
   end
