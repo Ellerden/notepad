@@ -1,4 +1,3 @@
-
 require_relative 'lib/post'
 require_relative 'lib/memo'
 require_relative 'lib/link'
@@ -38,44 +37,67 @@ OptionParser.new do |opt|
   # метод parse, чтобы он заполнил наш хэш options в соответствии с правилами.
 end.parse!
 
-# Вызываем метод find класса Post, который найдет нам нужные записи в
+
+
+# Вызываем метод find_id класса Post, который найдет нам нужные записи в
 # соответствии с запросом. Записываем то, что он вернет в переменную result.
-result = Post.find(options[:limit], options[:type], options[:id])
 
-if result.is_a? Post
-  # Если результат — это один объект класса Post, значит выводим его
-  puts "Запись #{result.class.name}, id = #{options[:id]}"
 
-  # Получим строки для поста с помощью метода to_string и выведем их на экран
-  result.to_strings.each { |line| puts line }
-else
-  # Если результат — это не один пост, а сразу несколько, показываем таблицу
+# Вызываем метод find_id класса Post, который найдет нам нужные записи в
+# соответствии с запросом. Записываем то, что он вернет в переменную result.
 
-  # Сначала — напечатаем шапку таблицы с названиями полей
-  print '| id                 '
-  print '| @type              '
-  print '| @created_at        '
-  print '| @text              '
-  print '| @url               '
-  print '| @due_date          '
+if !options[:id].nil?
 
-  # Теперь для каждой строки из результатов выведем её в нужном формате
-  result.each do |row|
+result = Post.find_by_id(options[:id])
+
+# Если результат — это один объект класса Post, значит выводим его
+puts "Запись #{result.class.name}, id = #{options[:id]}"
+result.to_strings.each { |line| puts line }
+
+end
+
+# Вызываем метод find_all класса Post, который найдет нам нужные записи в
+# соответствии с запросом. Записываем то, что он вернет в переменную result.
+
+if !options[:type].nil? || !options[:limit].nil?
+
+  result = Post.find_all(options[:limit], options[:type])
+
+  if result.is_a? Post
+    # Если результат — это один объект класса Post, значит выводим его
+    puts "Запись #{result.class.name}, id = #{options[:id]}"
+
+   # Получим строки для поста с помощью метода to_string и выведем их на экран
+    result.to_strings.each { |line| puts line }
+  else
+    # Если результат — это не один пост, а сразу несколько, показываем таблицу
+
+    # Сначала — напечатаем шапку таблицы с названиями полей
+    print '| id                 '
+    print '| @type              '
+    print '| @created_at        '
+    print '| @text              '
+    print '| @url               '
+    print '| @due_date          '
+
+    # Теперь для каждой строки из результатов выведем её в нужном формате
+    result.each do |row|
     # Начинаем с пустой строки
-    puts
+      puts
 
-    # Для каждого элемента строки выводим его в нужном формате.
-    row.each do |element|
-      # С палкой перед ним и обрезая первые 40 символов для очень длинных строк.
-      # Также удаляем символы переноса.
-      element_text = "| #{element.to_s.delete("\n\r")[0..17]}"
+      # Для каждого элемента строки выводим его в нужном формате.
+      row.each do |element|
+        # С палкой перед ним и обрезая первые 40 символов для очень длинных строк.
+        # Также удаляем символы переноса.
+        element_text = "| #{element.to_s.delete("\n\r")[0..17]}"
 
-      # Если текст элемента короткий, добавляем нужное количество пробелов
-      element_text << ' ' * (21 - element_text.size)
+        # Если текст элемента короткий, добавляем нужное количество пробелов
+        element_text << ' ' * (21 - element_text.size)
 
-      # Выводим текст элемента
-      print element_text
+        # Выводим текст элемента
+        print element_text
+      end
     end
+    puts
   end
-  puts
 end
